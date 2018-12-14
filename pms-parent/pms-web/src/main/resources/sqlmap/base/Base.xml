@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.srx.pms.common.mapper.BaseMapper">
+	<resultMap id="baseEntityResultMap" type="com.srx.pms.common.model.entity.BaseEntity">
+		<result column="id" property="id" jdbcType="VARCHAR"/>
+		<result column="valid" property="valid" jdbcType="INTEGER"/>
+		<result column="remark" property="remark" jdbcType="VARCHAR"/>
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
+		<result column="create_user_id" property="createUserId" jdbcType="BIGINT"/>
+		<result column="update_time" property="updateTime" jdbcType="TIMESTAMP"/>
+		<result column="update_user_id" property="updateUserId" jdbcType="BIGINT"/>
+		
+	</resultMap>
+	<sql id="base_column_where">
+		<if test="valid !=null ">
+            AND T.valid = #{valid}
+        </if>
+        <if test="createTimeBegin !=null ">
+            AND T.create_time &gt;= #{createTimeBegin}
+        </if>
+        <if test="createTimeEnd !=null ">
+            AND T.create_time &lt;= #{createTimeEnd}
+        </if>
+        
+        <if test="createUserId !=null ">
+            AND T.create_user_id = #{createUserId}
+        </if>
+        <if test="updateUserId !=null ">
+            AND T.update_user_id = #{updateUserId}
+        </if>
+        <if test="ids != null and ids.size != 0">
+        	AND T.id in
+        	<foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+                #{item}       
+       		</foreach> 
+        </if>
+	</sql>
+	<sql id="base_limit">
+		<if test="limit != null and limit > 0 and start != null and start >= 0">
+            limit #{start},#{limit}
+        </if>
+	</sql>
+	<sql id = "base_orderby">
+		<if test="order != null and order.length() != 0">
+        	ORDER BY ${order}
+        </if>
+	</sql>
+</mapper>

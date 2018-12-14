@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.srx.pms.user.mapper.UserMapper">
+    <resultMap id="userResultMap" type="User" extends="com.srx.pms.common.mapper.BaseMapper.baseEntityResultMap">
+        <result column="login_name" property="loginName" jdbcType="VARCHAR"/>
+        <result column="password" property="password" jdbcType="VARCHAR"/>
+        <result column="salt" property="salt" jdbcType="VARCHAR"/>
+        <result column="is_root" property="isRoot" jdbcType="VARCHAR"/>
+        <association property="detail" column="id" 
+			select="com.srx.pms.user.mapper.UserDetailMapper.selectByUserId">
+		</association>
+		<collection property="roles" ofType="Role"
+               javaType="java.util.ArrayList" select="com.srx.pms.system.mapper.RoleMapper.selectByUserId"
+               column="id">
+        </collection>
+    </resultMap>
+    <sql id="user_column">
+        id,
+        login_name,
+        password,
+        salt,
+        is_root,
+        valid,
+        remark,
+        create_time,
+        create_user_id,
+        update_time,
+        update_user_id
+    </sql>
+	
+    <sql id="user_column_where">
+        <if test="id !=null ">
+            AND id = #{id}
+        </if>
+        <if test="loginName !=null and loginName.length() != 0">
+            AND login_name = #{loginName}
+        </if>
+        <if test="password !=null and password.length() != 0">
+            AND password = #{password}
+        </if>
+    </sql>
+    <insert id="insert" parameterType="User">
+    	<selectKey keyProperty="id" resultType="java.lang.String"
+			order="BEFORE">
+			select replace(upper(uuid()),'-','') from dual
+		</selectKey>
+        insert into pms_user (<include refid="user_column"></include>)
+        values(
+	        #{id},
+	        #{loginName},
+	        #{password},
+	        #{salt},
+	        #{isRoot},
+	        #{valid},
+	        #{remark},
+	        #{createTime},
+	        #{createUserId},
+	        #{updateTime},
+	        #{updateUserId}
+        )
+    </insert>
+
+    <update id="update" parameterType="User">
+        update pms_user
+        <set>
+        	id =#{id}
+            <if test="loginName !=null and loginName.length() !=0">
+                ,login_name = #{loginName}
+            </if>
+            <if test="password !=null and password.length() !=0">
+                ,password = #{password}
+            </if>
+            <if test="salt !=null and salt.length() !=0">
+                ,salt = #{salt}
+            </if>
+            <if test="valid !=null">
+                ,valid = #{valid}
+            </if>
+            <if test="remark !=null">
+                ,remark = #{remark}
+            </if>
+            <if test="updateTime !=null">
+                ,update_time = #{updateTime}
+            </if>
+            <if test="updateUserId !=null">
+                ,update_user_id = #{updateUserId}
+            </if>
+        </set>
+        where id =#{id}
+    </update>
+    <update id="delete">
+        UPDATE pms_user SET valid = 0 WHERE id = #{id}
+    </update>
+	<update id="batchDelete" parameterType="java.util.List">
+        UPDATE pms_user SET valid = 0 WHERE id in
+        <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+            #{item}       
+   		</foreach> 
+    </update>
+    <select id="select" parameterType="UserQueryBean" resultMap="userResultMap">
+        select * from pms_user where 1=1
+        <include refid="user_column_where"/>
+        <if test="order!=''">
+            ORDER BY #{order}
+        </if>
+    </select>
+
+    <select id="load" parameterType="String" resultMap="userResultMap">
+        SELECT * FROM pms_user WHERE id = #{id}
+    </select>
+
+    <select id="count" resultType="integer" parameterType="UserQueryBean">
+        SELECT count(1) FROM pms_user T 
+        where 1=1
+        <include refid="user_column_where"></include>
+    </select>
+</mapper>

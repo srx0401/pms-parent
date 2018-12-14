@@ -1,0 +1,12 @@
+com\srx\pms\system\controller\SystemController.class
+com\srx\pms\system\controller\PermissionController.class
+com\srx\pms\account\controller\AccountController.class
+com\srx\pms\common\annotation\SessionUser.class
+com\srx\pms\common\exception\UnLoginException.class
+com\srx\pms\common\component\SessionAspect.class
+com\srx\pms\system\controller\ResourceController.class
+com\srx\pms\finance\controller\FinanceController.class
+com\srx\pms\system\controller\DataTypeController.class
+com\srx\pms\system\controller\RoleController.class
+com\srx\pms\system\controller\DataDictionaryController.class
+com\srx\pms\common\interceptor\LoginInterceptor.class

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.srx.pms.module.account.mapper.AccountMapper">
+    <resultMap id="accountResultMap" type="Account" extends="com.srx.pms.common.mapper.BaseMapper.baseEntityResultMap">
+    	
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="desc" property="desc" jdbcType="VARCHAR"/>
+        <result column="address" property="address" jdbcType="VARCHAR"/>
+        <result column="user_name" property="userName" jdbcType="VARCHAR"/>
+        <result column="password" property="password" jdbcType="VARCHAR"/>
+        <result column="phone_no" property="phoneNo" jdbcType="VARCHAR"/>
+        <result column="last_use_date" property="lastUseDate" jdbcType="TIMESTAMP"/>
+        <result column="enable" property="enable" jdbcType="INTEGER"/>
+        <result column="private_key" property="privateKey" jdbcType="VARCHAR"/>
+        <result column="prompt_msg" property="promptMsg" jdbcType="VARCHAR"/>
+        <result column="type_id" property="typeId" jdbcType="VARCHAR"/>
+        <result column="encrypt_Fields" property="encryptFields" jdbcType="VARCHAR"/>
+        <association property="type" column="type_id" select="com.srx.pms.system.mapper.DataDictionaryMapper.load">
+		</association>
+    </resultMap>
+	<sql id="account_column">
+        id,
+        name,
+        `desc`,
+        address,
+        user_name,
+        password,
+        type_id,
+        phone_no,
+        last_use_date,
+        enable,
+        private_key,
+        prompt_msg,
+        encrypt_Fields,
+        valid,
+        remark,
+        create_time,
+        create_user_id,
+        update_time,
+        update_user_id
+    </sql>
+	<sql id="account_column_where">
+        <if test="id !=null ">
+            AND T.id = #{id}
+        </if>
+        <if test="name !=null and name.length() != 0">
+            AND T.name LIKE concat('%', #{name},'%')
+        </if>
+        <if test="address !=null and address.length() != 0">
+            AND T.address LIKE concat('%', #{address},'%')
+        </if>
+        <if test="userName !=null and userName.length() != 0">
+            AND T.user_name LIKE concat('%', #{userName},'%')
+        </if>
+        <if test="phoneNo !=null and phoneNo.length() != 0">
+            AND T.phone_no LIKE concat('%', #{phoneNo},'%')
+        </if>
+        <if test="typeId !=null and typeId.length() != 0">
+            AND exists(SELECT 1 FROM pms_data_dictionary s1 where s1.id = T.type_id and s1.id = #{typeId})
+        </if>
+<!--         <if test="typeCode !=null and typeCode.length() != 0"> -->
+<!--             AND exists(SELECT 1 FROM pms_data_dictionary s1 where s1.id = T.type_id and s1.code = #{typeCode}) -->
+<!--         </if> -->
+<!--         <if test="type !=null and type.id != null and type.id.length() != 0"> -->
+<!--             AND exists(SELECT 1 FROM pms_data_dictionary s1 where s1.id = T.type_id and s1.id = #{type.id}) -->
+<!--         </if> -->
+        <if test="enable !=null">
+            AND T.enable = #{enable} 
+        </if>
+        <include refid="com.srx.pms.common.mapper.BaseMapper.base_column_where"></include>
+    </sql>
+	<insert id="insert" parameterType="Account">
+    	<selectKey keyProperty="id" resultType="java.lang.String"
+			order="BEFORE">
+			select replace(upper(uuid()),'-','') from dual
+		</selectKey>
+        insert into pms_account (<include refid="account_column"></include>)
+        values(
+        	#{id},
+	        #{name},
+	        #{desc},
+	        #{address},
+	        #{userName},
+	        #{password},
+	        #{typeId},
+	        #{phoneNo},
+	        #{lastUseDate},
+	        #{enable},
+	        #{privateKey},
+	        #{promptMsg},
+	        #{encryptFields},
+	        #{valid},
+	        #{remark},
+	        #{createTime},
+	        #{createUserId},
+	        #{updateTime},
+	        #{updateUserId}
+	        )
+    </insert>
+
+    <update id="update" parameterType="Account">
+        update pms_account
+        <set>
+            id=#{id}
+            <if test="name !=null and name.length() !=0"> ,`name` = #{name} </if>
+            <if test="desc !=null"> ,`desc` = #{desc} </if>
+            <if test="address != null">,`address`=#{address}</if>
+            <if test="userName != null and userName.length() != 0">,user_name=#{userName}</if>
+            <if test="password !=null and password.length() !=0"> ,password = #{password} </if>
+<!--             <if test="type !=null and type.id != null and type.id.length() !=0"> ,type_id = #{type.id} </if> -->
+            <if test="typeId !=null and typeId.length() != 0"> ,type_id = #{typeId} </if>
+            <if test="phoneNo !=null and phoneNo.length() !=0"> ,phone_no = #{phoneNo} </if>
+            <if test="lastUseDate !=null"> ,last_use_date = #{lastUseDate} </if>
+            <if test="enable !=null"> ,`enable` = #{enable} </if>
+            <if test="privateKey !=null"> ,private_key = #{privateKey} </if>
+            <if test="promptMsg !=null"> ,prompt_msg = #{promptMsg} </if>
+            <if test="encryptFields !=null"> ,encrypt_Fields = #{encryptFields} </if>
+            <if test="valid !=null"> ,valid = #{valid} </if>
+            <if test="remark !=null"> ,remark = #{remark} </if>
+            <if test="updateTime !=null"> ,update_time = #{updateTime} </if>
+            <if test="updateUserId !=null"> ,update_user_id = #{updateUserId} </if>
+        </set>
+        where id =#{id}
+    </update>
+    <update id="delete" parameterType="String">
+        UPDATE pms_account SET valid = 0 WHERE id = #{id}
+    </update>
+	<update id="batchDelete" parameterType="java.util.List">
+        UPDATE pms_account SET valid = 0 WHERE id in
+        <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+            #{item}       
+   		</foreach> 
+    </update>
+    <select id="select" parameterType="AccountQueryBean" resultMap="accountResultMap">
+        select * from pms_account T
+        WHERE 1=1 
+        <include refid="account_column_where"></include>
+        <include refid="com.srx.pms.common.mapper.BaseMapper.base_orderby"></include>
+        <include refid="com.srx.pms.common.mapper.BaseMapper.base_limit"></include>
+    </select>
+    <select id="load" parameterType="String" resultMap="accountResultMap">
+        SELECT * FROM pms_account WHERE id = #{id}
+    </select>
+    <select id="count" resultType="long" parameterType="AccountQueryBean">
+        SELECT count(1) FROM pms_account T
+        WHERE 1=1 
+        <include refid="account_column_where"></include>
+    </select>
+</mapper>

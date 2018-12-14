@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.srx.pms.module.finance.mapper.FinanceMapper">
+    <resultMap id="financeResultMap" type="Finance" extends="com.srx.pms.common.mapper.BaseMapper.baseEntityResultMap">
+<!--     	<result column="amount" property="amount" jdbcType="DECIMAL"/> -->
+        <result column="payer" property="payer" jdbcType="VARCHAR"/>
+        <result column="payee" property="payee" jdbcType="VARCHAR"/>
+        <result column="deal_time" property="dealTime" jdbcType="TIMESTAMP"/>
+        <result column="deal_location" property="dealLocation" jdbcType="VARCHAR"/>
+        <result column="used_for" property="usedFor" jdbcType="VARCHAR"/>
+        <result column="witness" property="witness" jdbcType="VARCHAR"/>
+        <result column="money_from" property="moneyFrom" jdbcType="VARCHAR"/>
+        <result column="money_to" property="moneyTo" jdbcType="VARCHAR"/>
+        <result column="from_user_id" property="fromUserId" jdbcType="VARCHAR"/>
+        <result column="to_user_id" property="toUserId" jdbcType="VARCHAR"/>
+        <result column="private_key" property="privateKey" jdbcType="VARCHAR"/>
+        <result column="prompt_msg" property="promptMsg" jdbcType="VARCHAR"/>
+        <association property="type" column="type_id" select="com.srx.pms.system.mapper.DataDictionaryMapper.load">
+		</association>
+		<association property="payWay" column="pay_way_id" select="com.srx.pms.system.mapper.DataDictionaryMapper.load">
+		</association>
+		<association property="category" column="category_id" select="com.srx.pms.system.mapper.DataDictionaryMapper.load">
+		</association>
+		
+    </resultMap>
+	<sql id="finance_column">
+        id,
+        type_id,
+        `amount`,
+        payer,
+        payee,
+        deal_time,
+        DEAL_LOCATION,
+        PAY_WAY_ID,
+        CATEGORY_ID,
+        USED_FOR,
+        WITNESS,
+        MONEY_FROM,
+        MONEY_TO,
+        FROM_USER_ID,
+        TO_USER_ID,
+        private_key,
+        prompt_msg,
+        valid,
+        remark,
+        create_time,
+        create_user_id,
+        update_time,
+        update_user_id
+    </sql>
+	<sql id="finance_column_where">
+        <if test="id !=null ">
+            AND T.id = #{id}
+        </if>
+        <if test="typeId !=null and typeId.length() != 0">
+            AND exists(SELECT 1 FROM pms_data_dictionary s1 where s1.id = T.type_id and s1.id = #{typeId})
+        </if>
+        <if test="payer !=null and payer.length() != 0">
+            AND T.payer LIKE concat('%', #{payer},'%')
+        </if>
+        <if test="payee !=null and payee.length() != 0">
+            AND T.payee LIKE concat('%', #{payee},'%')
+        </if>
+        <if test="dealTimeBegin !=null ">
+            AND T.deal_time &gt;= #{dealTimeBegin}
+        </if>
+        <if test="dealTimeEnd !=null ">
+            AND T.deal_time &lt;= #{dealTimeEnd}
+        </if>
+        <if test="payWayId !=null and payWayId.length() != 0">
+            AND exists(SELECT 1 FROM pms_data_dictionary s1 where s1.id = T.pay_way_id and s1.id = #{payWayId})
+        </if>
+        <if test="categoryId !=null and categoryId.length() != 0">
+            AND exists(SELECT 1 FROM pms_data_dictionary s1 where s1.id = T.category_id and s1.id = #{categoryId})
+        </if>
+        <include refid="com.srx.pms.common.mapper.BaseMapper.base_column_where"></include>
+    </sql>
+	<insert id="insert" parameterType="Finance">
+    	<selectKey keyProperty="id" resultType="java.lang.String"
+			order="BEFORE">
+			select replace(upper(uuid()),'-','') from dual
+		</selectKey>
+        insert into pms_finance (<include refid="finance_column"></include>)
+        values(
+        	#{id},
+	        #{typeId},
+	        #{amount},
+	        #{payer},
+	        #{payee},
+	        #{dealTime},
+	        #{dealLocation},
+	        #{payWayId},
+	        #{categoryId},
+	        #{usedFor},
+	        #{witness},
+	        #{moneyFrom},
+	        #{moneyTo},
+	        #{fromUserId},
+	        #{toUserId},
+	        #{privateKey},
+	        #{promptMsg},
+	        #{valid},
+	        #{remark},
+	        #{createTime},
+	        #{createUserId},
+	        #{updateTime},
+	        #{updateUserId}
+	        )
+    </insert>
+
+    <update id="update" parameterType="Finance">
+        update pms_finance
+        <set>
+            id=#{id}
+            <if test="typeId !=null and typeId.length() !=0"> ,name = #{typeId} </if>
+            <if test="amount !=null"> ,amount = #{amount} </if>
+            <if test="payer != null and payer.length() !=0">,payer=#{payer}</if>
+            <if test="payee != null and payee.length() !=0">,payee=#{payee}</if>
+            <if test="dealTime != null">,deal_time=#{dealTime}</if>
+            <if test="dealLocation != null and dealLocation.length() !=0">,deal_location=#{dealLocation}</if>
+            <if test="payWayId != null and payWayId.length() != 0">,pay_way_id=#{payWayId}</if>
+            <if test="categoryId !=null and categoryId.length() !=0"> ,category_id = #{categoryId} </if>
+            <if test="usedFor !=null and usedFor.length() !=0"> ,used_for = #{usedFor} </if>
+            <if test="witness !=null and witness.length() !=0"> ,witness = #{witness} </if>
+            <if test="moneyFrom !=null and moneyFrom.length() !=0"> ,money_from = #{moneyFrom} </if>
+            <if test="moneyTo !=null and moneyTo.length() !=0"> ,money_to = #{moneyTo} </if>
+            <if test="fromUserId !=null and fromUserId.length() !=0"> ,from_user_id = #{fromUserId} </if>
+            <if test="toUserId !=null and toUserId.length() !=0"> ,to_user_id = #{toUserId} </if>
+            <if test="privateKey !=null"> ,private_key = #{privateKey} </if>
+            <if test="promptMsg !=null"> ,prompt_msg = #{promptMsg} </if>
+            <if test="valid !=null"> ,valid = #{valid} </if>
+            <if test="remark !=null"> ,remark = #{remark} </if>
+            <if test="updateTime !=null"> ,update_time = #{updateTime} </if>
+            <if test="updateUserId !=null"> ,update_user_id = #{updateUserId} </if>
+        </set>
+        where id =#{id}
+    </update>
+    <update id="delete" parameterType="String">
+        UPDATE pms_finance SET valid = 0 WHERE id = #{id}
+    </update>
+	<update id="batchDelete" parameterType="java.util.List">
+        UPDATE pms_finance SET valid = 0 WHERE id in
+        <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+            #{item}       
+   		</foreach> 
+    </update>
+    <select id="select" parameterType="FinanceQueryBean" resultMap="financeResultMap">
+        select * from pms_finance T
+        WHERE 1=1 
+        <include refid="finance_column_where"></include>
+        <include refid="com.srx.pms.common.mapper.BaseMapper.base_orderby"></include>
+        <include refid="com.srx.pms.common.mapper.BaseMapper.base_limit"></include>
+    </select>
+    <select id="load" parameterType="String" resultMap="financeResultMap">
+        SELECT * FROM pms_finance WHERE id = #{id}
+    </select>
+    <select id="count" resultType="long" parameterType="FinanceQueryBean">
+        SELECT count(1) FROM pms_finance T
+        WHERE 1=1 
+        <include refid="finance_column_where"></include>
+    </select>
+</mapper>

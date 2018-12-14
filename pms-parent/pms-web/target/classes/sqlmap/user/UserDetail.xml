@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.srx.pms.user.mapper.UserDetailMapper">
+    <resultMap id="userDetailResultMap" type="UserDetail" extends="com.srx.pms.common.mapper.BaseMapper.baseEntityResultMap">
+    	<result column="user_id" property="userId" jdbcType="VARCHAR"/>
+        <result column="zh_name" property="zhName" jdbcType="VARCHAR"/>
+        <result column="en_name" property="enName" jdbcType="VARCHAR"/>
+        <result column="sex" property="sex" jdbcType="INTEGER"/>
+        <result column="birth" property="birth" jdbcType="DATE"/>
+        <result column="email" property="email" jdbcType="VARCHAR"/>
+        <result column="phone" property="phone" jdbcType="VARCHAR"/>
+        <result column="address" property="address" jdbcType="VARCHAR"/>
+    </resultMap>
+	<sql id="user_detail_column">
+        id,
+        user_id,
+        zh_name,
+        en_name,
+        sex,
+        birth,
+        email,
+        phone,
+        address,
+        valid,
+        remark,
+        create_time,
+        create_user_id,
+        update_time,
+        update_user_id
+    </sql>
+	<sql id="user_detail_column_where">
+        <if test="id !=null ">
+            AND id = #{id}
+        </if>
+        <if test="userId !=null ">
+            AND user_id = #{userId}
+        </if>
+        <if test="zhName !=null and zhName.length() != 0">
+            AND zh_name LIKE concat('%', #{zhName},'%')
+        </if>
+        <if test="enName !=null and enName.length() != 0">
+            AND en_name LIKE concat('%', #{enName},'%')
+        </if>
+        <if test="sex !=null ">
+            AND sex = #{sex}
+        </if>
+        <if test="birthBegin !=null">
+            AND birth &gt;= #{birthBegin}
+        </if>
+        <if test="birthEnd !=null">
+            AND birth &lt;= #{birthEnd}
+        </if>
+        <if test="phone !=null and phone.length() != 0">
+            AND phone LIKE concat('%', #{phone},'%')
+        </if>
+        <if test="address !=null and address.length() != 0">
+            AND address LIKE concat('%', #{address},'%')
+        </if>
+        
+        <if test="valid !=null ">
+            AND valid = #{valid}
+        </if>
+        <if test="createTimeBegin !=null ">
+            AND create_time &gt;= #{createTimeBegin}
+        </if>
+        <if test="createTimeEnd !=null ">
+            AND create_time &lt;= #{createTimeEnd}
+        </if>
+        
+        <if test="createUserId !=null ">
+            AND create_user_id = #{createUserId}
+        </if>
+        <if test="updateUserId !=null ">
+            AND update_user_id = #{updateUserId}
+        </if>
+    </sql>
+	<insert id="insert" parameterType="UserDetail">
+    	<selectKey keyProperty="id" resultType="java.lang.String"
+			order="BEFORE">
+			select replace(upper(uuid()),'-','') from dual
+		</selectKey>
+        insert into pms_user (<include refid="user_detail_column"></include>)
+        values(
+        	#{id},
+        	#{userId},
+	        #{zhName},
+	        #{enName},
+	        #{sex},
+	        #{birth},
+	        #{email},
+	        #{phone},
+	        #{address},
+	        #{valid},
+	        #{remark},
+	        #{createTime},
+	        #{createUserId},
+	        #{updateTime},
+	        #{updateUserId}
+	        )
+    </insert>
+
+    <update id="update" parameterType="UserDetail">
+        update pms_user_detail
+        <set>
+            id=#{id}
+            <if test="zhName !=null and zhName.length() !=0">
+                ,zh_name = #{zhName}
+            </if>
+            <if test="enName !=null and enName.length() !=0">
+                ,en_name = #{enName}
+            </if>
+            <if test="sex !=null">
+                ,sex = #{sex}
+            </if>
+            <if test="birth !=null and birth.length() !=0">
+                ,birth = #{birth}
+            </if>
+            <if test="email !=null and email.length() !=0">
+                ,email = #{email}
+            </if>
+            <if test="phone !=null and phone.length() !=0">
+                ,phone = #{phone}
+            </if>
+            <if test="address !=null and address.length() !=0">
+                ,address = #{address}
+            </if>
+            <if test="valid !=null">
+                ,valid = #{valid}
+            </if>
+            <if test="remark !=null">
+                ,remark = #{remark}
+            </if>
+            <if test="updateTime !=null">
+                ,update_time = #{updateTime}
+            </if>
+            <if test="updateUserId !=null">
+                ,update_user_id = #{updateUserId}
+            </if>
+        </set>
+        where id =#{id}
+    </update>
+    <update id="delete" parameterType="String">
+        UPDATE pms_user_detail SET valid = 0 WHERE id = #{id}
+    </update>
+	<update id="batchDelete" parameterType="java.util.List">
+        UPDATE pms_user_detail SET valid = 0 WHERE id in
+        <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+            #{item}       
+   		</foreach> 
+    </update>
+    <select id="select" parameterType="UserDetailQueryBean" resultMap="userDetailResultMap">
+        select * from pms_user_detail
+        WHERE 1=1 <include refid="user_detail_column_where"></include>
+        ORDER BY #{order}
+    </select>
+	
+    <select id="load" parameterType="String" resultMap="userDetailResultMap">
+        SELECT * FROM pms_user_detail WHERE id = #{id}
+    </select>
+	<select id="selectByUserId" parameterType="String" resultMap="userDetailResultMap">
+        SELECT * FROM pms_user_detail WHERE user_id = #{userId}
+    </select>
+    <select id="count" resultType="long" parameterType="UserDetailQueryBean">
+        SELECT count(1) FROM pms_user_detail T
+        WHERE 1=1 
+        <include refid="user_detail_column_where"></include>
+    </select>
+    
+</mapper>

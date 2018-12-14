@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.srx.pms.system.mapper.UserRoleMapper">
+    <resultMap id="permissionResultMap" type="Permission" extends="com.srx.pms.common.mapper.BaseMapper.baseEntityResultMap">
+        <result column="desc" property="desc" jdbcType="VARCHAR"/>
+        <association property="resource" column="resource_id" select="com.srx.pms.system.mapper.ResourceMapper.load">
+		</association>
+		<association property="role" column="role_id" select="com.srx.pms.system.mapper.RoleMapper.load">
+		</association>
+    </resultMap>
+	<sql id="permission_column">
+        id,
+        resource_id,
+        role_id,
+        desc,
+        valid,
+        remark,
+        create_time,
+        create_user_id,
+        update_time,
+        update_user_id
+    </sql>
+	<sql id="permission_column_where">
+        <if test="id !=null ">
+            AND T.id = #{id}
+        </if>
+        <if test="resourceId !=null and resourceId.length() != 0">
+            AND T.resource_id = #{code}
+        </if>
+        <if test="roleId !=null and roleId.length() != 0">
+            AND T.role_id = #{roleId}
+        </if>
+        <if test="desc !=null and desc.length() != 0">
+            AND T.desc LIKE concat('%', #{desc},'%')
+        </if>
+        <if test="valid !=null ">
+            AND T.valid = #{valid}
+        </if>
+        <if test="createTimeBegin !=null ">
+            AND T.create_time &gt;= #{createTimeBegin}
+        </if>
+        <if test="createTimeEnd !=null ">
+            AND T.create_time &lt;= #{createTimeEnd}
+        </if>
+        
+        <if test="createUserId !=null ">
+            AND T.create_user_id = #{createUserId}
+        </if>
+        <if test="updateUserId !=null ">
+            AND T.update_user_id = #{updateUserId}
+        </if>
+    </sql>
+	<insert id="insert" parameterType="Permission">
+    	<selectKey keyProperty="id" resultType="java.lang.String"
+			order="BEFORE">
+			select replace(upper(uuid()),'-','') from dual
+		</selectKey>
+        insert into pms_permission (<include refid="permission_column"></include>)
+        values(
+        	#{id},
+        	#{resource_id},
+	        #{role_id},
+	        #{desc},
+	        #{valid},
+	        #{remark},
+	        #{createTime},
+	        #{createUserId},
+	        #{updateTime},
+	        #{updateUserId}
+	        )
+    </insert>
+
+    <update id="update" parameterType="Permission">
+        update pms_permission
+        <set>
+            id=#{id}
+            <if test="resource !=null"> ,resource_id = #{resource.id} </if>
+            <if test="role !=null"> ,role_id = #{role.id} </if>
+            <if test="desc !=null"> ,desc = #{desc} </if>
+            <if test="valid !=null"> ,valid = #{valid} </if>
+            <if test="remark !=null"> ,remark = #{remark} </if>
+            <if test="updateTime !=null"> ,update_time = #{updateTime} </if>
+            <if test="updateUserId !=null"> ,update_user_id = #{updateUserId} </if>
+        </set>
+        where id =#{id}
+    </update>
+    <update id="delete" parameterType="String">
+        UPDATE pms_permission SET valid = 0 WHERE id = #{id}
+    </update>
+	<update id="batchDelete" parameterType="java.util.List">
+        UPDATE pms_permission SET valid = 0 WHERE id in
+        <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+            #{item}       
+   		</foreach> 
+    </update>
+    <select id="select" parameterType="PermissionQueryBean" resultMap="permissionResultMap">
+        select * from pms_permission T
+        WHERE 1=1 
+        <include refid="permission_column_where"></include>
+        ORDER BY #{order}
+    </select>
+	
+    <select id="load" parameterType="String" resultMap="permissionResultMap">
+        SELECT * FROM pms_permission WHERE id = #{id}
+    </select>
+    <select id="selectByRoleId" parameterType="String" resultMap="permissionResultMap">
+        SELECT * FROM pms_permission WHERE role_id = #{id}
+    </select>
+    <select id="count" resultType="long" parameterType="PermissionQueryBean">
+        SELECT count(1) FROM pms_permission T
+        WHERE 1=1 
+        <include refid="permission_column_where"></include>
+    </select>
+</mapper>

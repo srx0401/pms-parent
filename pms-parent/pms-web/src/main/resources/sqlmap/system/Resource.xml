@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.srx.pms.system.mapper.ResourceMapper">
+    <resultMap id="resourceResultMap" type="Resource" extends="com.srx.pms.common.mapper.BaseMapper.baseEntityResultMap">
+    	<result column="code" property="code" jdbcType="VARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="desc" property="desc" jdbcType="VARCHAR"/>
+        <result column="sort" property="sort" jdbcType="INTEGER"/>
+        <result column="module" property="module" jdbcType="VARCHAR"/>
+        <association property="type" column="type_id" select="com.srx.pms.system.mapper.DataDictionaryMapper.load">
+		</association>
+		<association property="icon48" column="icon48" select="com.srx.pms.system.mapper.DataDictionaryMapper.load">
+		</association>
+		<association property="icon16" column="icon16" select="com.srx.pms.system.mapper.DataDictionaryMapper.load">
+		</association>
+    </resultMap>
+	<sql id="resource_column">
+        id,
+        code,
+        name,
+        desc,
+        module,
+        icon48,
+        icon16
+        sort,
+        valid,
+        remark,
+        create_time,
+        create_user_id,
+        update_time,
+        update_user_id
+    </sql>
+	<sql id="resource_column_where">
+        <if test="id !=null ">
+            AND T.id = #{id}
+        </if>
+        <if test="code !=null and code.length() != 0">
+            AND T.code = #{code}
+        </if>
+        <if test="name !=null and name.length() != 0">
+            AND T.name LIKE concat('%', #{name},'%')
+        </if>
+        <if test="module !=null and module.length() != 0">
+            AND T.module = #{module}
+        </if>
+        <if test="typeCode !=null and typeCode.length() != 0">
+            AND exists(SELECT 1 FROM pms_data_dictionary s1 where s1.id = T.type_id and s1.code = #{typeCode})
+        </if>
+        <if test="userId !=null and userId.length() != 0">
+            AND (exists(SELECT 1 FROM pms_user s1 where s1.id=#{userId} and s1.is_root = 1) 
+            	or exists(SELECT 1 FROM pms_user s1,pms_role s2,pms_user_role s3,pms_permission s4
+            	where s1.id = s3.user_id 
+            	and s2.id = s3.role_id
+            	and s4.role_id = s2.id
+            	and s4.resource_id = T.id
+            	and s1.id = #{userId}
+            ))
+        </if>
+        <if test="roleId !=null and roleId.length() != 0">
+            AND exists(SELECT 1 FROM pms_role s2,pms_user_role s3,pms_permission s4
+            	where s2.id = s3.role_id
+            	and s4.role_id = s2.id
+            	and s4.resource_id = T.id
+            	and s2.id = #{roleId}
+            )
+        </if>
+        <if test="valid !=null ">
+            AND T.valid = #{valid}
+        </if>
+        <if test="createTimeBegin !=null ">
+            AND T.create_time &gt;= #{createTimeBegin}
+        </if>
+        <if test="createTimeEnd !=null ">
+            AND T.create_time &lt;= #{createTimeEnd}
+        </if>
+        
+        <if test="createUserId !=null ">
+            AND T.create_user_id = #{createUserId}
+        </if>
+        <if test="updateUserId !=null ">
+            AND T.update_user_id = #{updateUserId}
+        </if>
+    </sql>
+	<insert id="insert" parameterType="Resource">
+    	<selectKey keyProperty="id" resultType="java.lang.String"
+			order="BEFORE">
+			select replace(upper(uuid()),'-','') from dual
+		</selectKey>
+        insert into pms_resource (<include refid="resource_column"></include>)
+        values(
+        	#{id},
+        	#{code},
+	        #{name},
+	        #{desc},
+	        #{module},
+	        #{icon48.id},
+	        #{icon16.id},
+	        #{sort},
+	        #{valid},
+	        #{remark},
+	        #{createTime},
+	        #{createUserId},
+	        #{updateTime},
+	        #{updateUserId}
+	        )
+    </insert>
+
+    <update id="update" parameterType="Resource">
+        update pms_resource
+        <set>
+            id=#{id}
+            <if test="code !=null and code.length() !=0"> ,code = #{code} </if>
+            <if test="name !=null and name.length() !=0"> ,name = #{name} </if>
+            <if test="desc !=null"> ,desc = #{desc} </if>
+            <if test="module != null">,module=#{module}</if>
+            <if test="sort != null">,sort=#{sort}</if>
+            <if test="icon48 !=null and icon48.id != null and icon48.id.length() !=0"> ,icon48 = #{icon48.id} </if>
+            <if test="icon16 !=null and icon16.id != null and icon16.id.length() !=0"> ,icon16 = #{icon16.id} </if>
+            <if test="valid !=null"> ,valid = #{valid} </if>
+            <if test="remark !=null"> ,remark = #{remark} </if>
+            <if test="updateTime !=null"> ,update_time = #{updateTime} </if>
+            <if test="updateUserId !=null"> ,update_user_id = #{updateUserId} </if>
+        </set>
+        where id =#{id}
+    </update>
+    <update id="delete" parameterType="String">
+        UPDATE pms_resource SET valid = 0 WHERE id = #{id}
+    </update>
+	<update id="batchDelete" parameterType="java.util.List">
+        UPDATE pms_resource SET valid = 0 WHERE id in
+        <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+            #{item}       
+   		</foreach> 
+    </update>
+    <select id="select" parameterType="ResourceQueryBean" resultMap="resourceResultMap">
+        select * from pms_resource T
+        WHERE 1=1 
+        <include refid="resource_column_where"></include>
+        ORDER BY #{order}
+    </select>
+	<select id="selectByRoleId" parameterType="String" resultMap="resourceResultMap">
+        SELECT * FROM pms_role A,pms_permission B,pms_resource C 
+        WHERE A.id = B.role_id and B.resource_id = C.id and role_id = #{id}
+    </select>
+    <select id="loadMenus" parameterType="ResourceQueryBean" resultMap="resourceResultMap">
+        SELECT * FROM pms_resource T
+        WHERE 1=1
+        <include refid="resource_column_where"></include>
+        ORDER BY #{order}
+    </select>
+    <select id="load" parameterType="String" resultMap="resourceResultMap">
+        SELECT * FROM pms_resource WHERE id = #{id}
+    </select>
+    <select id="count" resultType="long" parameterType="ResourceQueryBean">
+        SELECT count(1) FROM pms_resource T
+        WHERE 1=1 
+        <include refid="resource_column_where"></include>
+    </select>
+</mapper>

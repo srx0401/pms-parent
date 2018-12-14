@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+	<script src="aes.js"></script>
+	<script src="sha256.js"></script>
+	<script src="Base64.js"></script>
+	<script src="pad-zeropadding-min.js"></script>
+	<script src="Security.js"></script>
+	<script type="text/javascript">
+	debugger;
+		function toEncrypt(){
+			debugger;
+			/**/
+			var data = document.getElementById("data").value;
+			var salt = document.getElementById("key").value;
+			var showArea = document.getElementById("showArea");
+			try{
+				var res = new Security().encryptByAES(data,salt);
+				showArea.innerHTML = res;
+			}catch(e){
+				console.log(e);
+				alert("加密异常");
+			}
+			
+		}
+		function toDecrypt(){
+			debugger;
+			/***/
+			var data = document.getElementById("data").value;
+			var salt = document.getElementById("key").value;
+			var showArea = document.getElementById("showArea");
+			try{
+				var res = new Security().decryptByAES(data,salt);
+				showArea.innerHTML = res;
+			}catch(e){
+				console.log(e);
+				alert("解密密码不正确");
+			}
+		}
+	</script>
+</head>
+
+<body>
+	<input id = 'data' value = "http://www.baidu.com"/><br/>
+	<input id = 'key' value = "1q2w3e"/><br/>
+	<span id = 'showArea'></span><br/>
+	<button onclick="toEncrypt()">encrypt</button>
+	<button onclick="toDecrypt()">decrypt</button>
+</body>
+
+
+</html>

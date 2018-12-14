@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.srx.pms.system.mapper.DataTypeMapper">
+    <resultMap id="dataTypeResultMap" type="DataType" extends="com.srx.pms.common.mapper.BaseMapper.baseEntityResultMap">
+    	<result column="code" property="code" jdbcType="VARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="sort" property="sort" jdbcType="INTEGER"/>
+    </resultMap>
+	<sql id="data_type_column">
+        id,
+        code,
+        name,
+        sort,
+        valid,
+        remark,
+        create_time,
+        create_user_id,
+        update_time,
+        update_user_id
+    </sql>
+	<sql id="data_type_column_where">
+        <if test="id !=null ">
+            AND id = #{id}
+        </if>
+        <if test="code !=null and code.length() != 0">
+            AND code = #{code}
+        </if>
+        <if test="name !=null and name.length() != 0">
+            AND name LIKE concat('%', #{name},'%')
+        </if>
+        
+        <if test="valid !=null ">
+            AND valid = #{valid}
+        </if>
+        <if test="createTimeBegin !=null ">
+            AND create_time &gt;= #{createTimeBegin}
+        </if>
+        <if test="createTimeEnd !=null ">
+            AND create_time &lt;= #{createTimeEnd}
+        </if>
+        
+        <if test="createUserId !=null ">
+            AND create_user_id = #{createUserId}
+        </if>
+        <if test="updateUserId !=null ">
+            AND update_user_id = #{updateUserId}
+        </if>
+    </sql>
+	<insert id="insert" parameterType="DataType">
+    	<selectKey keyProperty="id" resultType="java.lang.String"
+			order="BEFORE">
+			select replace(upper(uuid()),'-','') from dual
+		</selectKey>
+        insert into pms_data_type (<include refid="data_type_column"></include>)
+        values(
+        	#{id},
+        	#{code},
+	        #{name},
+	        #{sort},
+	        #{valid},
+	        #{remark},
+	        #{createTime},
+	        #{createUserId},
+	        #{updateTime},
+	        #{updateUserId}
+	        )
+    </insert>
+
+    <update id="update" parameterType="DataType">
+        update pms_data_type
+        <set>
+            id=#{id}
+            <if test="code !=null and code.length() !=0">
+                ,code = #{code}
+            </if>
+            <if test="name !=null and name.length() !=0">
+                ,name = #{name}
+            </if>
+            <if test="sort !=null">
+                ,sort = #{sort}
+            </if>
+            <if test="valid !=null">
+                ,valid = #{valid}
+            </if>
+            <if test="remark !=null">
+                ,remark = #{remark}
+            </if>
+            <if test="updateTime !=null">
+                ,update_time = #{updateTime}
+            </if>
+            <if test="updateUserId !=null">
+                ,update_user_id = #{updateUserId}
+            </if>
+        </set>
+        where id =#{id}
+    </update>
+    <update id="delete" parameterType="String">
+        UPDATE pms_data_type SET valid = 0 WHERE id = #{id}
+    </update>
+	<update id="batchDelete" parameterType="java.util.List">
+        UPDATE pms_data_type SET valid = 0 WHERE id in
+        <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+            #{item}       
+   		</foreach> 
+    </update>
+    <select id="select" parameterType="DataTypeQueryBean" resultMap="dataTypeResultMap">
+        select * from pms_data_type
+        WHERE 1=1 <include refid="data_type_column_where"></include>
+        ORDER BY #{order}
+    </select>
+	
+    <select id="load" parameterType="String" resultMap="dataTypeResultMap">
+        SELECT * FROM pms_data_type WHERE id = #{id}
+    </select>
+    <select id="count" resultType="long" parameterType="DataTypeQueryBean">
+        SELECT count(1) FROM pms_data_type T
+        WHERE 1=1 
+        <include refid="data_type_column_where"></include>
+    </select>
+    
+</mapper>

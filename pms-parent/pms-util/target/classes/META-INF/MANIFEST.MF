@@ -1,0 +1,8 @@
+Manifest-Version: 1.0
+Implementation-Title: pms-util
+Implementation-Version: 0.0.1-SNAPSHOT
+Implementation-Vendor-Id: com.srx.pms
+Build-Jdk: 1.7.0_80
+Built-By: Simon
+Created-By: Maven Integration for Eclipse
+
